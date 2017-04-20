@@ -1,7 +1,6 @@
 'use strict';
 
 var { Platform, NativeModules } = require('react-native');
-var stacktraceParser = require('stacktrace-parser');
 const _FirebaseCrashReport = NativeModules.RNFirebaseCrashReport;
 
 export default class FirebaseCrashReport {
@@ -32,19 +31,9 @@ export default class FirebaseCrashReport {
         const defaultGlobalHandler = global.ErrorUtils.getGlobalHandler();
 
         global.ErrorUtils.setGlobalHandler(async(error, isFatal) => {
-            // Parse stack frames from error stack trace
-            if (error.stack && Platform.OS === 'android') {
-                var stack = Array.isArray(error.stack) ? error.stack : stacktraceParser.parse(error.stack);
-                var framesToPop = typeof error.framesToPop === 'number' ? error.framesToPop : 0;
-                while (framesToPop--) {
-                    stack.shift();
-                }
-                _FirebaseCrashReport.reportWithStack(error.message, stack);
-            } else {
-                var stack = error.stack ? "\nStack trace: " + error.stack : "";
-                _FirebaseCrashReport.report(error.message + stack);
-            }
-            
+            var stack = error.stack ? "STACK TRACE: " + error.stack : "";
+            _FirebaseCrashReport.report(error.message + stack);
+
             // Call default handler in dev mode
             if (__DEV__ && defaultGlobalHandler) {
                 defaultGlobalHandler(error, isFatal);
